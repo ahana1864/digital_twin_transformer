@@ -20,6 +20,23 @@ uv pip install --python .venv\Scripts\python.exe -r requirements.txt
 .venv\Scripts\python -m pytest -q       # full suite, runs offline
 ```
 
+Frontend (`web/`, needs Node ≥20):
+
+```powershell
+cd web
+npm install
+npm run build                           # → web/dist
+```
+
+Then serve both together:
+
+```powershell
+$env:DT_WEB_DIST = "$pwd\web\dist"
+.venv\Scripts\python -m uvicorn server.app:app --port 8000   # dashboard at http://localhost:8000, API docs at /docs
+```
+
+For frontend-only iteration, `cd web && npm run dev` (Vite proxies `/api` to `:8000`, or set `VITE_USE_MOCK=true` to run without a backend).
+
 | Command | Does |
 |---|---|
 | `python -m ingest.adapter inspect FILE…` / `load FILE… [--schema S] [--save-schema S]` | Any CSV/Excel → proposed mapping / canonical dataset + health report |
@@ -71,7 +88,8 @@ res = analyze(twin, ds.events, effective_caps(ds.capabilities, twin), load_thres
 | `docs/` | all | PRD, ingestion spec, assumptions, P3 handoff, figures, `reference/` (organizers' problem statement and draft sheet) |
 | `dt/` | P4/all | `api.py`: the single backend facade for the dashboard (DataFrames / contract dataclasses only) |
 | `server/` | P4 | FastAPI wrapper: one endpoint per facade function, uploads, downsampling, CORS, static React build |
-| `app/`, `alerts/`, `reports/` | P4 | Empty: React app, Telegram, PDF not built yet |
+| `web/` | P4 (me) | The React dashboard: interactive 3D twin (`@react-three/fiber`), Health Index, alerts, Plotly charts. Vite + TypeScript + Tailwind |
+| `app/`, `alerts/`, `reports/` | P4 | Leftover placeholders from before `web/` existed: `app/` is an empty, unused stub; `alerts/telegram.py` and `reports/pdf.py` are present but return 501 — not wired up |
 
 ## Status
 
@@ -84,7 +102,12 @@ sensor alerts only · replay.
 **Backend for the dashboard:** `dt/api.py` facade and `server/` FastAPI (one endpoint per function, uploads,
 downsampling, OpenAPI in `docs/openapi.json`), self-test in CPRI's Excel format, ranked snapshot tables.
 
-**Not built yet:** the React app itself (P4) · PDF report (`report.pdf` returns 501) · Telegram alerts ·
+**Frontend (`web/`, done):** React + TypeScript dashboard served by FastAPI — interactive 3D twin with parts
+coloured by health state, Health Index, alerts with glass detail boxes, scenario/dataset picker, timeline replay,
+Import/Data Health/Self-Test/Reports pages, offline (no CDN, bundled fonts), graceful "backend offline" state
+instead of crashing when the API isn't reachable.
+
+**Not built yet:** PDF report (`report.pdf` returns 501) · Telegram alerts ·
 IsolationForest · breathing-stress index · Tier 2 ingestion (JSON/Parquet/ZIP, long/historian format, multi-asset).
 
 **Known open issues:** Kaggle download date not recorded (`data/PROVENANCE.md`) · licence of committing the Kaggle files to
