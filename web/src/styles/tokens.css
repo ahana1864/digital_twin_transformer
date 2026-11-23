@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* Design tokens (FRONTEND_HANDOFF §9). Light mode only. */
+:root {
+  color-scheme: light;
+
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --panel-2: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --muted-2: #475569;
+
+  --measured: #ea7a12; /* orange */
+  --twin: #2563eb; /* blue */
+
+  --health-green: #16a34a;
+  --health-yellow: #ca8a04;
+  --health-red: #dc2626;
+  --health-grey: #94a3b8; /* no data / not monitored */
+  --sensor: #475569; /* sensor-origin badge */
+
+  --banner-bg: #fef3c7; /* SIMULATED */
+  --banner-text: #92400e;
+  --accent-bg: #dbeafe;
+  --canvas: #eef1f5; /* 3D scene background */
+  --blueprint: #1e3a8a;
+  --blueprint-bg: #eff6ff;
+
+  --r-card: 10px;
+  --r-control: 6px;
+  --r-glass: 14px;
+
+  --rail-w: 56px;
+  --header-h: 56px;
+  --banner-h: 28px;
+  --scrub-h: 52px;
+  --footer-h: 24px;
+  --drawer-w: 360px;
+
+  --status-colour: var(--health-grey);
+}
+
+/* Tokens exposed as Tailwind utilities: bg-panel, text-muted, border-border, rounded-card ... */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-measured: var(--measured);
+  --color-twin: var(--twin);
+  --color-health-green: var(--health-green);
+  --color-health-yellow: var(--health-yellow);
+  --color-health-red: var(--health-red);
+  --color-health-grey: var(--health-grey);
+  --color-sensor: var(--sensor);
+  --color-banner-bg: var(--banner-bg);
+  --color-banner-text: var(--banner-text);
+  --color-accent-bg: var(--accent-bg);
+  --color-canvas: var(--canvas);
+  --color-blueprint: var(--blueprint);
+  --color-blueprint-bg: var(--blueprint-bg);
+
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+  --radius-card: var(--r-card);
+  --radius-control: var(--r-control);
+  --radius-glass: var(--r-glass);
+
+  --spacing-rail: var(--rail-w);
+  --spacing-header: var(--header-h);
+  --spacing-banner: var(--banner-h);
+  --spacing-scrub: var(--scrub-h);
+  --spacing-footer: var(--footer-h);
+  --spacing-drawer: var(--drawer-w);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--twin);
+    outline-offset: 2px;
+  }
+}
+
+/* Numbers: IBM Plex Mono, tabular */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glass surface (FRONTEND_HANDOFF §15.6): detail box, tooltip, drawer */
+.glass {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.62));
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-left: 4px solid var(--status-colour);
+  border-radius: var(--r-glass);
+  box-shadow:
+    0 8px 32px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Over the model, small text needs more than the 62 % glass: it dropped to 2.3:1 over dark parts
+   (FRONTEND_HANDOFF §15.6 says to raise the opacity when it falls below 4.5:1). */
+.glass-readable {
+  --glass-bg: rgba(255, 255, 255, 0.86);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* CRITICAL pulse, 1 Hz (§15.4) */
+@keyframes alarm-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--health-red) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+.alarm-pulse {
+  animation: alarm-pulse 1s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.skeleton {
+  background: var(--border);
+  border-radius: var(--r-control);
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alarm-pulse,
+  .skeleton {
+    animation: none;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.claude/worktrees/
+data/cache/runs/u-*/
+data/uploads/
